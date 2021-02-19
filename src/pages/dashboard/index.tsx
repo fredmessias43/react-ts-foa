@@ -1,51 +1,58 @@
-import React from 'react';
+import React, { useState, FormEvent } from 'react';
 import { FiChevronRight } from 'react-icons/fi';
 import { Title, Form, Repositories } from './styles';
 // import Logo from '../../assets/logo.svg';
 
+import api from '../../services/api';
+import Repository from '../repository';
+import repository from '../repository';
+
+interface IRepository {
+  fullName: string;
+  description: string;
+  owner: {
+    login: string;
+    avatarUrl: string;
+  };
+}
+
 const Dashboard: React.FC = () => {
+  const [newRepo, setNewRepo] = useState('');
+  const [repositories, setRepositories] = useState<IRepository[]>([]);
+
+  async function handleAddRepository(
+    e: FormEvent<HTMLFormElement>,
+  ): Promise<void> {
+    e.preventDefault();
+    const res = await api.get<IRepository>(`/repos/${newRepo}`);
+    const repository = res.data;
+    setRepositories([...repositories, repository]);
+    setNewRepo('');
+  }
+
   return (
     <>
       {/* <img src={Logo} alt="Github Explorer" /> */}
       <Title>Explorer Repositories in GitHub</Title>
-      <Form action="">
-        <input type="text" placeholder="Digite o nome do repositorio" />
+      <Form onSubmit={handleAddRepository}>
+        <input
+          value={newRepo}
+          onChange={e => setNewRepo(e.target.value)}
+          placeholder="Digite o nome do repositorio"
+        />
         <button type="submit">Pesquisar</button>
       </Form>
       <Repositories>
-        <a href="https://github.com/">
-          <img
-            src="https://avatars.githubusercontent.com/u/39710268?s=460&v=4"
-            alt="Frederico"
-          />
-          <div>
-            <strong>Facebook/React</strong>
-            <p>React is lixo vue is better</p>
-          </div>
-          <FiChevronRight size="20" />
-        </a>
-        <a href="https://github.com/">
-          <img
-            src="https://avatars.githubusercontent.com/u/39710268?s=460&v=4"
-            alt="Frederico"
-          />
-          <div>
-            <strong>Facebook/React</strong>
-            <p>React is lixo vue is better</p>
-          </div>
-          <FiChevronRight size="20" />
-        </a>
-        <a href="https://github.com/">
-          <img
-            src="https://avatars.githubusercontent.com/u/39710268?s=460&v=4"
-            alt="Frederico"
-          />
-          <div>
-            <strong>Facebook/React</strong>
-            <p>React is lixo vue is better</p>
-          </div>
-          <FiChevronRight size="20" />
-        </a>
+        {repositories.map(repo => (
+          <a key={repo.fullName} href="https://github.com/">
+            <img src={repo.owner.avatarUrl} alt={repo.owner.login} />
+            <div>
+              <strong>{repo.fullName}</strong>
+              <p>{repo.description}</p>
+            </div>
+            <FiChevronRight size="20" />
+          </a>
+        ))}
       </Repositories>
     </>
   );
