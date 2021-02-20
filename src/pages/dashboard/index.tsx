@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import React, { useState, FormEvent } from 'react';
+import React, { useState, useEffect, FormEvent } from 'react';
 import { FiChevronRight } from 'react-icons/fi';
 import { Title, Form, Repositories, Error } from './styles';
 // import Logo from '../../assets/logo.svg';
@@ -18,7 +18,20 @@ interface IRepository {
 const Dashboard: React.FC = () => {
   const [newRepo, setNewRepo] = useState('');
   const [error, setError] = useState('');
-  const [repositories, setRepositories] = useState<IRepository[]>([]);
+  const [repositories, setRepositories] = useState<IRepository[]>(() => {
+    const repoLC = localStorage.getItem('@GithubExplorer:repositories');
+    if (repoLC) {
+      return JSON.parse(repoLC);
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem(
+      '@GithubExplorer:repositories',
+      JSON.stringify(repositories),
+    );
+  }, [repositories]);
 
   async function handleAddRepository(
     e: FormEvent<HTMLFormElement>,
